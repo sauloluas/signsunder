@@ -1,3 +1,10 @@
+const KEY: [char; 10] = ['q', 'w', 'e', 'a', 's', 'd', 'z', 'x', 'c', 'v'];
+
+
+
+
+
+
 pub struct Entity {
     pub name: &'static str,
     pub health: u8,
@@ -6,13 +13,11 @@ pub struct Entity {
 }
 
 impl Entity {
-
     pub fn render(&self) {
         println!("    {}", self.name);
         println!("      HP: {}", self.health);
         print!("      ");
         for sign in &self.signs {
-            // print!("{}", sign.shortname);  DEPRECATED
             sign.render();
         }
         print!("\n");
@@ -63,6 +68,7 @@ impl EntityType {
 
 
 
+
 pub struct Field {
     pub party: Vec<Entity>,
     pub gamemaster: Vec<Entity>
@@ -92,13 +98,15 @@ impl Field {
 }
 
 
-const KEY: [char; 10] = ['q', 'w', 'e', 'a', 's', 'd', 'z', 'x', 'c', 'v'];
+
+
 
 
 pub struct Sign {
     pub name: &'static str,
     pub shortname: &'static str,
     pub color: Color,
+    pub class: Class
 }
 
 impl Sign {
@@ -121,33 +129,36 @@ impl SignType {
             SignType::NoEffect => Sign {
                 name: "No effect",
                 shortname: "Nef",
-                color: Color::White
+                color: Color::White,
+                class: Class::NoClass
             },
             SignType::Burning => Sign {
                 name: "Burning",
                 shortname: "Brn",
-                color: Color::Red
+                color: Color::Red,
+                class: Class::Elemental
             },
             SignType::Wet => Sign {
                 name: "Wet",
                 shortname: "Wet",
-                color: Color::Blue
+                color: Color::Blue,
+                class: Class::Elemental
             },
             SignType::Poisoned => Sign {
                 name: "Poisoned",
                 shortname: "Psn",
-                color: Color::Green
+                color: Color::Green,
+                class: Class::Physical
             },
             SignType::Cut => Sign {
                 name: "Cut",
                 shortname: "Cut",
-                color: Color::Gray
+                color: Color::Gray,
+                class: Class::Physical
             }
         }
     }
 }
-
-
 
 pub enum Color {
     NoColor,
@@ -188,13 +199,12 @@ impl Color {
 
 
 
-
-
 pub struct Move {
     pub name: &'static str,
     pub damage: Dice,
     pub effect: Sign,
     pub strength: Application,
+    pub class: Class
 }
 
 pub enum MoveType {
@@ -209,17 +219,31 @@ impl MoveType {
                 name: "Slash",
                 damage: Dice::D4,
                 effect: SignType::Cut.instance(),
-                strength: Application::Weak
+                strength: Application::Weak,
+                class: Class::Physical
             },
             MoveType::Pull => Move {
                 name: "Pull",
                 damage: Dice::D4,
                 effect: SignType::NoEffect.instance(),
-                strength: Application::Intensifier
+                strength: Application::Intensifier,
+                class: Class::Physical
             }
         }
     }
 }
+
+
+
+
+
+
+pub enum Class {
+    NoClass,
+    Physical,
+    Elemental
+}
+
 
 
 
@@ -230,7 +254,6 @@ pub enum Dice {
     D4,
     D6,
 }
-
 
 pub enum Application {
     Weak,
