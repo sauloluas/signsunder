@@ -3,21 +3,21 @@ const KEY: [char; 10] = ['q', 'w', 'e', 'a', 's', 'd', 'z', 'x', 'c', 'v'];
 
 
 
-
-
 pub struct Entity {
-    pub name: &'static str,
-    pub health: u8,
-    pub signs: Vec<Sign>,
-    pub moves: Vec<Move>,
+    pub head: EntityHead,
+    pub body: EntityBody
 }
 
 impl Entity {
+    pub fn new(head: EntityHead) -> Entity {
+        return head.instance();
+    }
+
     pub fn render(&self) {
-        println!("    {}", self.name);
-        println!("      HP: {}", self.health);
+        println!("    {}", self.body.name);
+        println!("      HP: {}", self.body.health);
         print!("      ");
-        for sign in &self.signs {
+        for sign in &self.body.signs {
             sign.render();
         }
         print!("\n");
@@ -25,40 +25,50 @@ impl Entity {
     }
 }
 
-pub enum EntityType {
+pub struct EntityBody {
+    pub name: &'static str,
+    pub health: u8,
+    pub signs: Vec<Sign>,
+    pub moves: Vec<Move>,
+}
+
+impl EntityBody {
+    pub fn new(name: &'static str, health: u8) -> EntityBody {
+        EntityBody {
+            name,
+            health,
+            signs: Vec::new(),
+            moves: Vec::new()   
+        }
+    }
+}
+
+pub enum EntityHead {
     Hunter,
     Orbat,
     Vampire,
-    Butler
+    Butler,
+    NoEntity
 }
 
-impl EntityType {
+impl EntityHead {
     pub fn instance(&self) -> Entity {
         match &self {
-            EntityType::Hunter => Entity {
-                name: "Hunter",
-                health: 18,
-                signs: Vec::new(),
-                moves: vec![MoveType::Slash.instance()]
-
+            EntityHead::Hunter => Entity {
+                body: EntityBody::new("Hunter", 18),
+                head: EntityHead::Hunter
             },
-            EntityType::Orbat => Entity {
-                name: "Orbat",
-                health: 8,
-                signs: Vec::new(),
-                moves: vec![MoveType::Pull.instance()]
+            EntityHead::Orbat => Entity {
+                body: EntityBody::new("Orbat", 8),
+                head: EntityHead::Orbat
             },
-            EntityType::Butler => Entity {
-                name: "Butler",
-                health: 13,
-                signs: Vec::new(),
-                moves: vec![]
+            EntityHead::Butler => Entity {
+                body: EntityBody::new("Butler", 13),
+                head: EntityHead::Butler
             },
-            _ => Entity{
-                name: "Unknown",
-                health: 1,
-                signs: Vec::new(),
-                moves: Vec::new()
+            _ => Entity {
+                body: EntityBody::new("NoEntity", 1),
+                head: EntityHead::NoEntity
             }
         }
     }
@@ -100,22 +110,29 @@ impl Field {
 
 
 
-
-
 pub struct Sign {
+    head: SignHead,
+    body: SignBody
+}
+
+impl Sign {
+    pub fn new(head: SignHead) -> Sign {
+        return head.instance();
+    }
+
+    pub fn render(&self) {
+        print!("\x1b[{}m{}\x1b[0m", self.body.color.get_code(), self.body.shortname);  // Future Works: implement Display trait
+    }
+}
+
+pub struct SignBody {
     pub name: &'static str,
     pub shortname: &'static str,
     pub color: Color,
     pub class: Class
 }
 
-impl Sign {
-    pub fn render(&self) {
-        print!("\x1b[{}m{}\x1b[0m", self.color.get_code(), self.shortname);  // Future Works: implement Display trait
-    }
-}
-
-pub enum SignType {
+pub enum SignHead {
     NoEffect,
     Burning,
     Wet,
@@ -123,38 +140,53 @@ pub enum SignType {
     Cut
 }
 
-impl SignType {
+impl SignHead {
     pub fn instance(&self) -> Sign {                    // Future Works: possibility of adding HashMap
         match &self {
-            SignType::NoEffect => Sign {
-                name: "No effect",
-                shortname: "Nef",
-                color: Color::White,
-                class: Class::NoClass
+            SignHead::NoEffect => Sign {
+                body: SignBody {
+                    name: "No effect",
+                    shortname: "Nef",
+                    color: Color::White,
+                    class: ClassHead::NoClass.instance()
+                },
+                head: SignHead::NoEffect
             },
-            SignType::Burning => Sign {
-                name: "Burning",
-                shortname: "Brn",
-                color: Color::Red,
-                class: Class::Elemental
+            SignHead::Burning => Sign {
+                body: SignBody {
+                    name: "Burning",
+                    shortname: "Brn",
+                    color: Color::Red,
+                    class: ClassHead::Elemental.instance()
+                },
+                head: SignHead::Burning
             },
-            SignType::Wet => Sign {
-                name: "Wet",
-                shortname: "Wet",
-                color: Color::Blue,
-                class: Class::Elemental
+            SignHead::Wet => Sign {
+                body: SignBody {
+                    name: "Wet",
+                    shortname: "Wet",
+                    color: Color::Blue,
+                    class: ClassHead::Elemental.instance()
+                },
+                head: SignHead::Wet
             },
-            SignType::Poisoned => Sign {
-                name: "Poisoned",
-                shortname: "Psn",
-                color: Color::Green,
-                class: Class::Physical
+            SignHead::Poisoned => Sign {
+                body: SignBody {
+                    name: "Poisoned",
+                    shortname: "Psn",
+                    color: Color::Green,
+                    class: ClassHead::Physical.instance()
+                },
+                head: SignHead::Poisoned
             },
-            SignType::Cut => Sign {
-                name: "Cut",
-                shortname: "Cut",
-                color: Color::Gray,
-                class: Class::Physical
+            SignHead::Cut => Sign {
+                body: SignBody {
+                    name: "Cut",
+                    shortname: "Cut",
+                    color: Color::Gray,
+                    class: ClassHead::Physical.instance()
+                },
+                head: SignHead::Cut
             }
         }
     }
@@ -197,9 +229,18 @@ impl Color {
 
 
 
-
-
 pub struct Move {
+    body: MoveBody,
+    head: MoveHead
+}
+
+impl Move {
+    pub fn new(head: MoveHead) -> Move {
+        return head.instance();
+    }
+}
+
+pub struct MoveBody {
     pub name: &'static str,
     pub damage: Dice,
     pub effect: Sign,
@@ -207,27 +248,33 @@ pub struct Move {
     pub class: Class
 }
 
-pub enum MoveType {
+pub enum MoveHead {
     Slash,
     Pull
 }
 
-impl MoveType {
+impl MoveHead {
     pub fn instance(&self) -> Move {
         match &self {
-            MoveType::Slash => Move {
-                name: "Slash",
-                damage: Dice::D4,
-                effect: SignType::Cut.instance(),
-                strength: Application::Weak,
-                class: Class::Physical
+            MoveHead::Slash => Move {
+                body: MoveBody {
+                    name: "Slash",
+                    damage: Dice::D4,
+                    effect: SignHead::Cut.instance(),
+                    strength: Application::Weak,
+                    class: ClassHead::Physical.instance()
+                },
+                head: MoveHead::Slash
             },
-            MoveType::Pull => Move {
-                name: "Pull",
-                damage: Dice::D4,
-                effect: SignType::NoEffect.instance(),
-                strength: Application::Intensifier,
-                class: Class::Physical
+            MoveHead::Pull => Move {
+                body: MoveBody {
+                    name: "Pull",
+                    damage: Dice::D4,
+                    effect: SignHead::NoEffect.instance(),
+                    strength: Application::Intensifier,
+                    class: ClassHead::Physical.instance()
+                },
+                head: MoveHead::Pull
             }
         }
     }
@@ -236,12 +283,62 @@ impl MoveType {
 
 
 
+pub struct Class {
+    body: ClassBody,
+    head: ClassHead
+}
 
+impl Class {
+    pub fn new(head: ClassHead) -> Class {
+        return head.instance();
+    }
 
-pub enum Class {
+    pub fn render(&self) {
+        print!("\x1b[{}m{}\x1b[0m", self.body.color.get_code(), self.body.shortname);
+    }
+}
+
+pub struct ClassBody {
+    name: &'static str,
+    shortname: &'static str,
+    color: Color
+}
+
+pub enum ClassHead {
     NoClass,
     Physical,
     Elemental
+}
+
+impl ClassHead {
+    pub fn instance(&self) -> Class {
+        match &self {
+            ClassHead::NoClass => Class {
+                body: ClassBody {
+                    name: "No Class",
+                    shortname: "Ncl",
+                    color: Color::White
+                },
+                head: ClassHead::NoClass
+            },
+            ClassHead::Physical => Class {
+                body: ClassBody {
+                    name: "Physical",
+                    shortname: "Phys",
+                    color: Color::Gray
+                },
+                head: ClassHead::Physical
+            },
+            ClassHead::Elemental => Class {
+                body: ClassBody {
+                    name: "Elemental",
+                    shortname: "Elem",
+                    color: Color::Blue
+                },
+                head: ClassHead::Elemental
+            }
+        }
+    }
 }
 
 
