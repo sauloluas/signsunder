@@ -13,6 +13,21 @@ impl Entity {
         return head.instance();
     }
 
+    pub fn width(&self) -> usize {
+        let name_width: usize = self.body.name.chars().count();
+        let health_width: usize = self.body.health.to_string().len() + 4;
+        let signs_width: usize = self.body.signs.len()*3;
+
+        if name_width > health_width && name_width > signs_width {
+            name_width
+        } else if health_width > signs_width {
+            health_width
+        } else {
+            signs_width
+        }
+
+    }
+
     pub fn render(&self) {
         println!("    {}", self.body.name);
         println!("      HP: {}", self.body.health);
@@ -307,7 +322,7 @@ pub struct ClassBody {
 pub enum ClassHead {
     NoClass,
     Physical,
-    Elemental
+    Elemental,
 }
 
 impl ClassHead {
